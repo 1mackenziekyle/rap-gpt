@@ -6,9 +6,9 @@ import time
 # ===== Hyperparameters =====
 batch_size = 64
 block_size = 256
-max_steps = 500
+max_steps = 2000
 eval_interval = max_steps // 10
-lr = 3e-4
+lr = 1e-5
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 eval_steps = 200
 n_embd = 384
@@ -20,10 +20,10 @@ train_split = 0.9
 
 
 # ===== Program Operation Parameters =====
-num_new_tokens = 10000
-txt_file = 'kanye_lyrics.txt'
-model_path = 'model_cp/gpt_50.pt'
+model_path = 'model_cp/poetry-9.pt'
 do_training = False
+num_new_tokens = 10000
+txt_file = 'text_files/all_lyrics.txt'
 print(f'Using device {device}')
 print(f'Using text file {txt_file}')
 # =====
@@ -224,7 +224,7 @@ class GPTLanguageModel(nn.Module):
                 for i in range(10):
                     print('\n')
                 print(decode(idx[0].tolist()))
-                time.sleep(0.02)
+                time.sleep(0.01)
         return idx
 
 
@@ -245,8 +245,11 @@ if do_training:
     for step in range(max_steps):
         if step % eval_interval == 0:
             losses = estimate_loss()
-            print(f'step {step}: train loss {losses["train"]:.3f}, val loss {losses["val"]:.3f} | time elapsed {time.time()-start:.0f}s')
-            torch.save(m.state_dict(), f'step{step}.pt')
+            delta_t = time.time() - start 
+            mins = int(delta_t) // 60
+            secs = int(delta_t) % 60
+            print(f'step {step}: train loss {losses["train"]:.3f}, val loss {losses["val"]:.3f} | time elapsed {mins}m{secs}s')
+            torch.save(m.state_dict(), f'model_cp/poetry-{step // eval_interval }.pt')
 
         xb, yb = get_batch('train')
         # evaluate loss
